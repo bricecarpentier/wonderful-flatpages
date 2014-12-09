@@ -8,6 +8,7 @@ class Placeholder(models.Model):
     name = models.CharField(max_length=255, unique=True, db_index=True)
     page = models.ForeignKey(FlatPage, null=True, db_index=True)
     content = models.TextField(blank=True, default='')
+    visible = models.BooleanField(default=False)
 
     def __str__(self):
         return '{}|{}'.format(self.page_id if self.page_id else '', self.name)

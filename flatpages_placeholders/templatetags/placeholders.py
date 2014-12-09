@@ -15,6 +15,10 @@ def placeholder(context, name, *args, **kwargs):
     if page and not page_independent:
         query_dict['page'] = page
 
+    visible = kwargs.get('visible', None)
+    if visible is not None:
+        query_dict['visible'] = visible
+
     p, created = Placeholder.objects.get_or_create(**query_dict)
 
     return mark_safe(p.content)
