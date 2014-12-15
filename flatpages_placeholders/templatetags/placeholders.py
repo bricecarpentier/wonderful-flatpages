@@ -21,4 +21,12 @@ def placeholder(context, name, *args, **kwargs):
 
     p, created = Placeholder.objects.get_or_create(**query_dict)
 
-    return mark_safe(p.content)
+
+@register.inclusion_tag('placeholders/css.html')
+def placeholder_css():
+    return {}
+
+
+@register.inclusion_tag('placeholders/js.html')
+def placeholder_js():
+    return {}
