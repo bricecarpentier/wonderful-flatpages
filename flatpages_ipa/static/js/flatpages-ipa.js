@@ -1,0 +1,1 @@
+/* looks for trigger classes and activate the ipa behavior */
