@@ -8,16 +8,25 @@ register = template.Library()
 
 
 @register.simple_tag(takes_context=True)
-def placeholder(context, name, tag, *args, **kwargs):
-    """
+def placeholder(context, name, **kwargs):
+    """ simply displays the content of a given placeholder
+        available keywords:
+        - page_independent: The Placeholder is not linked to a page.
+                            Useful for header/footer stuff.
+                            Defaults to False.
+        - visible: the Placeholder is not visible on the page (and thus can't
+                   be in-place-edited in a conventional way).
+                   Useful for meta keywords and description.
+                   Defaults to False.
     """
     # fetch placeholder content
     page = context.get('flatpage', None)
     page_independent = kwargs.get('page_independent', False)
 
-    query_dict = {'name': name}
-    if page and not page_independent:
-        query_dict['page'] = page
+    query_dict = {
+        'name': name,
+        'page': page if page and not page_independent else None,
+    }
 
     visible = kwargs.get('visible', None)
     if visible is not None:
