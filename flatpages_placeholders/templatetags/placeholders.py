@@ -44,13 +44,3 @@ def placeholder(context, name, tag, *args, **kwargs):
              'rest': rest}
 
         return mark_safe(u'<{tag} data-name="content" data-pk="1" data-type="{type}" data-url="{url}" {rest}>{content}</{tag}'.format(**d))
-
-
-@register.inclusion_tag('placeholders/css.html')
-def placeholder_css():
-    return {}
-
-
-@register.inclusion_tag('placeholders/js.html')
-def placeholder_js():
-    return {}
