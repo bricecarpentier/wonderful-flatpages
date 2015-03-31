@@ -22,9 +22,10 @@ def placeholder(context, name, **kwargs):
     # fetch placeholder content
     page = context.get('flatpage', None)
     page_independent = kwargs.get('page_independent', False)
+    language = kwargs.get('language', None)
 
     query_dict = {
-        'name': name,
+        'name': '{}{}'.format(name, '_' + language if language is not None else ''),
         'page': page if page and not page_independent else None,
     }
 

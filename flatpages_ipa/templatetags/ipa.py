@@ -38,6 +38,9 @@ def ipa_placeholder(context, name, tag, *args, **kwargs):
         - page_independent: The Placeholder is not linked to a page.
                             Useful for header/footer stuff.
                             Defaults to False.
+        - language: The Placeholder's name will be concatenated with
+                    the language if specified.
+                    Defaults to None
         - visible: the Placeholder is not visible on the page (and thus can't
                    be in-place-edited in a conventional way).
                    Useful for meta keywords and description.
@@ -50,9 +53,9 @@ def ipa_placeholder(context, name, tag, *args, **kwargs):
     # fetch placeholder content
     page = context.get('flatpage', None)
     page_independent = kwargs.get('page_independent', False)
-
+    language = kwargs.get('language', None)
     query_dict = {
-        'name': name,
+        'name': '{}{}'.format(name, '_' + language if language is not None else ''),
         'page': page if page and not page_independent else None,
     }
 
