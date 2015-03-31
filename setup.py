@@ -7,6 +7,6 @@ setup(
         'flatpages_placeholders',
     ],
     install_requires=[
-        "django==1.7",
+        "django>=1.5",
     ]
 )
