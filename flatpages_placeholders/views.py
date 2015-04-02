@@ -3,11 +3,12 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.edit import UpdateView
 
 from .models import Placeholder
+from .forms import ContentOnlyPlaceholderForm
 
 
 class PlaceholderUpdateView(UpdateView):
     model = Placeholder
-    fields = ['content']
+    form_class = ContentOnlyPlaceholderForm
     success_url = '/first/'
 
     @method_decorator(csrf_exempt)
@@ -16,8 +17,7 @@ class PlaceholderUpdateView(UpdateView):
 
     def get_form_kwargs(self):
         kwargs = {
-            'initial': self.get_initial(),
-            'prefix': self.get_prefix(),
+            'initial': self.get_initial()
         }
 
         if self.request.method in ('POST', 'PUT'):
