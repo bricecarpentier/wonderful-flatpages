@@ -1,5 +1,9 @@
+import json
+
+from django.db.models.query import QuerySet
 from django.template import Library
 from django.core.urlresolvers import reverse
+from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
 from flatpages_placeholders.models import Placeholder
@@ -46,6 +50,8 @@ def ipa_placeholder(context, name, tag, *args, **kwargs):
                    Useful for meta keywords and description.
                    Defaults to False.
         - type: the type of editing component to display
+        - choices: a list of {value, text} dictionaries to be used as
+                   select options
         - data_*: every data_* parameter will be converted to data-* attributes
                   on the html tag
 
@@ -54,6 +60,10 @@ def ipa_placeholder(context, name, tag, *args, **kwargs):
     page = context.get('flatpage', None)
     page_independent = kwargs.get('page_independent', False)
     language = kwargs.get('language', None)
+    choices = kwargs.pop('choices', None)
+    if isinstance(choices, QuerySet):
+        choices = [{"value": c.pk, "text": str(c)} for c in list(choices)]
+
     query_dict = {
         'name': '{}{}'.format(name, '_' + language if language is not None else ''),
         'page': page if page and not page_independent else None,
@@ -71,9 +81,13 @@ def ipa_placeholder(context, name, tag, *args, **kwargs):
         context['user'].has_perm('flatpages_placeholders.change_placeholder')
     editing = editable and context.get('edit', False)
 
+    content = p.content if choices is None else {c['value']: c['text'] for c in choices}[int(p.content)]
+
     # output
     if not editing:
-        return mark_safe(u'<{tag}>{content}</{tag}>'.format(tag=tag, content=p.content))
+        return mark_safe(u'<{tag}>{content}</{tag}>'.format(
+            tag=tag,
+            content=content))
     else:
         type = kwargs.get('type', 'text')
         url = kwargs.pop('data_url', reverse('placeholder_update', args=[p.pk]))
@@ -81,8 +95,11 @@ def ipa_placeholder(context, name, tag, *args, **kwargs):
 
         d = {'tag': tag,
              'type': type,
-             'content': p.content,
+             'content': content,
              'url': url,
-             'rest': rest}
+             'rest': rest,
+             'source': ''}
+        if choices is not None:
+            d['source'] = 'data-source="{}"'.format(escape(json.dumps(choices)))
 
-        return mark_safe(u'<{tag} data-name="content" data-pk="1" data-type="{type}" data-url="{url}" {rest}>{content}</{tag}'.format(**d))
+        return mark_safe(u'<{tag} data-name="content" data-pk="1" data-type="{type}" data-url="{url}" {source} {rest}>{content}</{tag}>'.format(**d))
