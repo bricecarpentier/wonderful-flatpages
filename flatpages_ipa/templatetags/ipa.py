@@ -12,9 +12,23 @@ from flatpages_placeholders.models import Placeholder
 register = Library()
 
 
-@register.inclusion_tag('flatpages/ipa/page_trigger.html')
-def page_trigger():
-    return {}
+def is_editing(context):
+    context_edit = bool(context['request'].GET.get('edit'))
+    editable = context.get('user', None) and \
+        context['user'].has_perm('flatpages_placeholders.change_placeholder')
+    editing = editable and context_edit
+
+    return editing
+
+
+@register.assignment_tag(takes_context=True)
+def ipa_editing(context):
+    return is_editing(context)
+
+
+@register.inclusion_tag('flatpages/ipa/page_trigger.html', takes_context=True)
+def page_trigger(context):
+    return {'editing': is_editing(context)}
 
 
 @register.inclusion_tag('flatpages/ipa/css.html')
@@ -76,12 +90,12 @@ def ipa_placeholder(context, name, tag, *args, **kwargs):
     p, created = Placeholder.objects.get_or_create(**query_dict)
 
     # decide whether to make editable or not
-    context['edit'] = True
-    editable = context.get('user', None) and \
-        context['user'].has_perm('flatpages_placeholders.change_placeholder')
-    editing = editable and context.get('edit', False)
-
-    content = p.content if choices is None else {c['value']: c['text'] for c in choices}[int(p.content)]
+    editing = is_editing(context)
+    if choices is None:
+        content = p.content
+    else:
+        d = {c['value']: c['text'] for c in choices}
+        content = d[p.content] if p.content in d else p.content
 
     # output
     if not editing:
