@@ -7,8 +7,7 @@ from ..models import Placeholder
 register = template.Library()
 
 
-@register.simple_tag(takes_context=True)
-def placeholder(context, name, **kwargs):
+def get_placeholder_content(context, name, **kwargs):
     """ simply displays the content of a given placeholder
         available keywords:
         - page_independent: The Placeholder is not linked to a page.
@@ -36,3 +35,13 @@ def placeholder(context, name, **kwargs):
     p, created = Placeholder.objects.get_or_create(**query_dict)
 
     return mark_safe(p.content)
+
+
+@register.simple_tag(takes_context=True)
+def placeholder(context, name, **kwargs):
+    return get_placeholder_content(context, name, **kwargs)
+
+
+@register.assignment_tag(takes_context=True)
+def placeholder_as(context, name, **kwargs):
+    return get_placeholder_content(context, name, **kwargs)
