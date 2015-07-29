@@ -25,3 +25,6 @@ class Image(models.Model):
 
     def __str__(self):
         return self.name or self.file.name
+
+    def get_absolute_url(self):
+        return self.file.url

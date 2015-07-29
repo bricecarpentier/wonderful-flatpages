@@ -1,0 +1,6 @@
+{% load i18n %}
+<form action="{% url 'image-create' %}" method="post" enctype="multipart/form-data" class="image-uploader" data-next-url="{{ next_url }}">
+    {% csrf_token %}
+    {{ form }} 
+    <button type="submit">{% trans 'Upload' %}</button>
+</form>
