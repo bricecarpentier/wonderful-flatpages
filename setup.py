@@ -8,5 +8,6 @@ setup(
     ],
     install_requires=[
         "django>=1.5",
+        "sorl-thumbnail",
     ]
 )
