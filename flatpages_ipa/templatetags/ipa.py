@@ -1,15 +1,24 @@
 import json
 
-from django.db.models.query import QuerySet
-from django.template import Library
+from django.conf import settings
 from django.core.urlresolvers import reverse
+from django.db.models.query import QuerySet
+from django.template import Library, Template
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
-from flatpages_placeholders.models import Placeholder
+from flatpages_cms.utils import get_image_placeholder
+from flatpages_cms.templatetags.cms import image_form
+from flatpages_placeholders.utils import get_placeholder
 
 
 register = Library()
+
+
+default_css_classes = getattr(
+    settings,
+    'FLATPAGES_PLACEHOLDERS_DEFAULT_CLASSES',
+    'editable editable-click')
 
 
 def is_editing(context):
@@ -70,50 +79,48 @@ def ipa_placeholder(context, name, tag, *args, **kwargs):
                   on the html tag
 
     """
-    # fetch placeholder content
-    page = context.get('flatpage', None)
-    page_independent = kwargs.get('page_independent', False)
-    language = kwargs.get('language', None)
+    type = kwargs.get('type', 'text')
     choices = kwargs.pop('choices', None)
     if isinstance(choices, QuerySet):
         choices = [{"value": c.pk, "text": str(c)} for c in list(choices)]
 
-    query_dict = {
-        'name': '{}{}'.format(name, '_' + language if language is not None else ''),
-        'page': page if page and not page_independent else None,
-    }
-
-    visible = kwargs.get('visible', None)
-    if visible is not None:
-        query_dict['visible'] = visible
-
-    p, created = Placeholder.objects.get_or_create(**query_dict)
+    if type != 'image':
+        p, content = get_placeholder(context, name, **kwargs)
+        if choices is None:
+            content = p.content
+        else:
+            d = {c['value']: c['text'] for c in choices}
+            content = d[p.content] if p.content in d else p.content
+    else:
+        p, content = get_image_placeholder(context, name, **kwargs)
 
     # decide whether to make editable or not
     editing = is_editing(context)
-    if choices is None:
-        content = p.content
-    else:
-        d = {c['value']: c['text'] for c in choices}
-        content = d[p.content] if p.content in d else p.content
-
-    # output
     if not editing:
-        return mark_safe(u'<{tag}>{content}</{tag}>'.format(
-            tag=tag,
-            content=content))
+        if type != 'image':
+            return mark_safe(u'<{tag}>{content}</{tag}>'.format(
+                tag=tag,
+                content=content))
+        else:
+            return content
     else:
         type = kwargs.get('type', 'text')
         url = kwargs.pop('data_url', reverse('placeholder_update', args=[p.pk]))
-        rest = ' '.join(['{}="{}"'.format(key.replace('_', '-'), value) for key, value in kwargs.iteritems()])
+        if type == 'image':
+            kwargs.pop('geometry')
+            kwargs.pop('crop')
+            kwargs['data_content'] = Template('{{% load cms %}}{{% image_form "{}" %}}'.format(url)).render(context).replace('"', "'")
+        css_classes = kwargs.pop('class', '') or default_css_classes
+        rest = ' '.join(['{}="{}"'.format(key.replace('_', '-'), value) for key, value in kwargs.items()])
 
         d = {'tag': tag,
              'type': type,
              'content': content,
              'url': url,
              'rest': rest,
+             'css_classes': css_classes,
              'source': ''}
         if choices is not None:
             d['source'] = 'data-source="{}"'.format(escape(json.dumps(choices)))
 
-        return mark_safe(u'<{tag} data-name="content" data-pk="1" data-type="{type}" data-url="{url}" {source} {rest}>{content}</{tag}>'.format(**d))
+        return mark_safe(u'<{tag} data-name="content" data-pk="1" data-type="{type}" data-url="{url}" class="{css_classes}" {source} {rest}>{content}</{tag}>'.format(**d))
