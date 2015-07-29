@@ -107,8 +107,8 @@ def ipa_placeholder(context, name, tag, *args, **kwargs):
         type = kwargs.get('type', 'text')
         url = kwargs.pop('data_url', reverse('placeholder_update', args=[p.pk]))
         if type == 'image':
-            kwargs.pop('geometry')
-            kwargs.pop('crop')
+            kwargs.pop('geometry', None)
+            kwargs.pop('crop', None)
             kwargs['data_content'] = Template('{{% load cms %}}{{% image_form "{}" %}}'.format(url)).render(context).replace('"', "'")
         css_classes = kwargs.pop('class', '') or default_css_classes
         rest = ' '.join(['{}="{}"'.format(key.replace('_', '-'), value) for key, value in kwargs.items()])

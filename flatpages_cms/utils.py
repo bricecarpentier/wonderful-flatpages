@@ -33,7 +33,7 @@ def get_image_placeholder(context, name, **kwargs):
             staticfiles_storage.url(default_image))
         image_url = staticfiles_storage.url(default_image)
 
-    if len(kwargs):
+    if 'geometry' in kwargs:
         # some kwargs are left, assuming in order to call sorl
         source = get_thumbnail(
             image_path,
