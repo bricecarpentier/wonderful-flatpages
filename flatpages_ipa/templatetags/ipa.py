@@ -20,6 +20,11 @@ default_css_classes = getattr(
     'FLATPAGES_PLACEHOLDERS_DEFAULT_CLASSES',
     'editable editable-click')
 
+default_css_image_classes = getattr(
+    settings,
+    'FLATPAGES_PLACEHOLDERS_DEFAULT_IMAGE_CLASSES',
+    'editable-image editable-click')
+
 
 def is_editing(context):
     context_edit = bool(context['request'].GET.get('edit'))
@@ -110,7 +115,9 @@ def ipa_placeholder(context, name, tag, *args, **kwargs):
             kwargs.pop('geometry', None)
             kwargs.pop('crop', None)
             kwargs['data_content'] = Template('{{% load cms %}}{{% image_form "{}" %}}'.format(url)).render(context).replace('"', "'")
-        css_classes = kwargs.pop('class', '') or default_css_classes
+            css_classes = kwargs.pop('class', '') or default_css_image_classes
+        else:
+            css_classes = kwargs.pop('class', '') or default_css_classes
         rest = ' '.join(['{}="{}"'.format(key.replace('_', '-'), value) for key, value in kwargs.items()])
 
         d = {'tag': tag,
