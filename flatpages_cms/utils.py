@@ -1,5 +1,9 @@
 from django.conf import settings
-from django.contrib.sites.shortcuts import get_current_site
+try:
+    from django.contrib.sites.shortcuts import get_current_site
+except ImportError:
+    # old django version
+    from django.contrib.sites.models import get_current_site
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.utils.safestring import mark_safe
 
